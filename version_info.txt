@@ -121,7 +121,7 @@ ft_v0.4.5.0 2024-04-07
 
 - sql file 중 테이블명으로 안되어있는거 수정함 sft_game > sft_game_state_info 로
 - 깃으로 관리 시작
-
+- 깃허브도 연동함. git@github.com:kittycaravan/SpringFantasyTrip.git
 ============================================================
 
 
