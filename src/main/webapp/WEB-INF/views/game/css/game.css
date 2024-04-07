@@ -1,0 +1,22 @@
+@charset "UTF-8";
+
+#screen_game_enter {
+	width: 100%;
+	height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+#x {
+	width: 600px;
+	height: 600px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+}
+
+#y {
+	width: 600px;
+}

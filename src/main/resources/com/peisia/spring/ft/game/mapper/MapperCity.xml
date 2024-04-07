@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.peisia.spring.ft.game.mapper.MapperCity">
+	<select id="getCity" resultType="com.peisia.spring.ft.game.dto.DtoCity">
+		SELECT * from ins_sft_game_city where no = #{no};
+	</select>
+	
+	<!-- 	호감도 +- 처리 -->
+	<update id="updateManLiking">
+		update ins_sft_game_city set bar_man_liking = #{bar_man_liking} where no = #{no};
+	</update>
+	
+</mapper>

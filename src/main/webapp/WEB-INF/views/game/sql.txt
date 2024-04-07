@@ -1,0 +1,144 @@
+use my_cat;
+CREATE DATABASE my_cat default CHARACTER SET UTF8MB4;
+DROP DATABASE MY_FT;
+
+###
+# 
+# 플레이어가 고른 케릭터(계정이 아님) 마다 다른 평행 우주가 열리는 개념의 게임임
+# 1인용임.
+# 하나의 peisia.com 가입 계정으로 여러 주인공 케릭터 중 하나를 골라서 시작 할 수 있음. 
+# 새 게임 마다 하나의 주인공 케릭터를 골라 이름을 짓고 생성하여 시작하게 되고 매 새 게임마다 우주가 열리는 개념. ( >> PLAYER_ID 가 생성됨 )
+# (다른 계정과의 경쟁은 아직 미구현. 미기획 )
+# (일단은 1인용 게임으로 구현)
+
+
+###	키워드 설명
+# FT 접두어 : Fantasy Trip 게임용 테이블이라는 의미.
+# INS 안 붙은거 : 변하지 않는 게임 데이터(기본 값).
+# INS 붙은거 : Instance 객체. 위 기본 테이블을 복사하여 이 테이블을 만들고 게임을 진행하면서 이 테이블에 데이터를 crud 하게 함.
+# ID : 각 테이블에 PK( primary key )가 필요한 경우 이 이름으로 통일.
+
+#인스-플레이어
+#주의. 현 도시 위치인 city_id 지정 시 주의. player id 에 따라 도시 id 가 다를 수 있음. 같은 리스본이라고 하더라도..
+#순서가 이 테이블의 데이터 생성을 먼저 하되 시작 도시는 별개로 처리해야함.
+CREATE TABLE FT_INS_PLAYER(
+	ID INT PRIMARY KEY AUTO_INCREMENT,		#플레이어 아이디. *중요*
+    AC_ID CHAR(50) UNIQUE NOT NULL,			#사이트 계정 아이디
+    NAME CHAR(50), 
+	GOLD INT, 
+	CITY_ID INT, 
+	TURN INT    
+);
+Insert into FT_INS_PLAYER (AC_ID,NAME,GOLD,CITY_ID,TURN) values ('nyang4','카미너스',800,1,1);
+SELECT * FROM FT_INS_PLAYER;
+DROP TABLE FT_INS_PLAYER;
+
+
+
+#도시
+CREATE TABLE FT_CITY(
+	ID INT PRIMARY KEY AUTO_INCREMENT,		#도시를 구분하는 id
+	NAME CHAR(50) NOT NULL,					#도시이름
+	NATION CHAR(50),
+	DEV_SHOP int, 
+	DEV_ARMY int,
+    LATITUDE int,
+    LONGITUDE int
+   );
+Insert into FT_CITY (NAME,NATION,DEV_SHOP,DEV_ARMY,LATITUDE,LONGITUDE) values ('리스본','포르투갈',2000,2000,50,50);
+Insert into FT_CITY (NAME,NATION,DEV_SHOP,DEV_ARMY,LATITUDE,LONGITUDE) values ('세비아','스페인',3000,3000,60,60);
+select * from FT_CITY;
+drop table ft_city;
+   
+#인스-도시   
+CREATE TABLE FT_INS_CITY(
+	PLAYER_ID INT DEFAULT -1, 	 			#이 도시의 소속 플레이어(우주).	-1 : 소속 우주 없음(기본 값)
+	ID INT PRIMARY KEY AUTO_INCREMENT,		#도시를 구분하는 id
+	NAME CHAR(50) NOT NULL,					#도시이름
+	NATION CHAR(50),
+	DEV_SHOP int, 
+	DEV_ARMY int,
+    LATITUDE int,
+    LONGITUDE int
+   );
+   
+#todo 이거 나중에 트랜잭션 처리 할 것..
+#주의. 도시 테이블의 데이터를 인스-도시로 복사함. 이 때 COSMOS_ID 가 기본값 -1 로 삽입되는데 이걸 즉시 따로 update 해야함.
+INSERT INTO FT_INS_CITY (NAME, NATION, DEV_SHOP, DEV_ARMY, LATITUDE, LONGITUDE)
+ (SELECT NAME, NATION, DEV_SHOP, DEV_ARMY, LATITUDE, LONGITUDE FROM FT_CITY);
+UPDATE FT_INS_CITY SET PLAYER_ID = 1 WHERE PLAYER_ID=-1;
+SELECT * FROM FT_INS_CITY;
+DROP TABLE FT_INS_CITY;
+#ex.
+#UPDATE FT_INS_CITY SET PLAYER_ID = 2 WHERE PLAYER_ID=-1;
+
+
+#상품
+CREATE TABLE FT_GOODS(
+	ID int primary key, #
+    NAME CHAR(50) not null unique,			#이름
+	TYPE CHAR(50) not null,					#타입
+	TYPE_X CHAR(50), 						#타입X:확장용.
+	SPECIALTY_LV int default 0, 			#특산레벨(0,1,?)
+	PRICE_PRODUCER int default 0, 			#생산가
+	PRICE_SELLING int default 0, 			#판매가: 기준판매가
+	DISTANCE_WEIGHT int default 0, 			#거리 가중치 %
+	SPECIALTY_WEIGHT int default 0, 		#특산 가중치 %	ex. 5
+	CHANGE_RANGE int default 0, 			#변동폭 %	ex.30, 50
+	AMOUNT int default 0					#수량: 기준수량
+);
+#drop table ft_goods;
+insert into ft_goods (ID,NAME,TYPE,PRICE_PRODUCER,PRICE_SELLING,AMOUNT) values
+(1,	'초코파이',	'기호품',		100,		170, 20),
+(2,	'소금',	'조미료',			50,			80, 100),
+(3,	'꿀',	'조미료',			300,		600, 10),
+(4,	'대포',	'무기',			5000,		8000, 3);
+select * from ft_goods;
+desc ft_goods;
+
+#인스-배 적재 화물(교역품,식량,물,자재,탄약). 유저,npc 포함.
+CREATE TABLE FT_INS_SHIP_CARGO(
+	ID int primary key auto_increment,		#id
+	SHIP_ID int not null, 					#배id
+	CARGO_TYPE CHAR(50) not null,			#화물타입
+	GOODS_ID int default 0,					#상품id
+	PURCHASES_PRICE int default 0, 			#구매가
+	AMOUNT int default 0					#수량: 기준수량
+);
+select * from FT_INS_SHIP_CARGO;
+desc FT_INS_SHIP_CARGO;
+#drop table FT_INS_SHIP_CARGO;
+insert into FT_INS_SHIP_CARGO (ship_id,cargo_type,goods_id,purchases_price,amount) values (1,'GOODS',1,100,1);
+
+#배 종류
+CREATE TABLE FT_SHIP_TYPE(
+ID INT PRIMARY KEY AUTO_INCREMENT,
+AIM CHAR(10) NOT NULL,
+NAME CHAR(20) NOT NULL,
+SIZE CHAR(10) NOT NULL,
+PRICE INT NOT NULL,
+LOADAGE INT NOT NULL
+);
+INSERT INTO FT_SHIP_TYPE (AIM,NAME,SIZE,PRICE,LOADAGE) VALUES
+('전투','전투용 바사','소형',200,30),
+('교역','교역용 바사','소형',1000,50),
+('모험','모험용 바사','소형',1500,40);
+select * from ft_ship_type;
+#drop table ft_ship_type;
+
+#인스-배 (게임 내 존재하는 <인스턴스:이하 INS로 하겠음> 배 오브젝트들)
+#주의. 이 테이블이 인스-배 적재화물 테이블을 땡겨옴.
+#생각해볼 것이..
+#npc들 정보도 여기에 넣어야할지?
+#CONTROL 칼럼을 추가하고 값 1 = 유저. 2 = NPC 둘로 나눔
+CREATE TABLE FT_INS_SHIP(
+	ID int primary key auto_increment,		#id
+	PLAYER_ID CHAR(50) not null, 			#플레이어id
+    CONTROL INT NOT NULL,					#조종을 플레이어가 하는 배인지 컴터가 조종하는 배인지. 1=유저,2=컴
+	SHIP_ID int not null 					#배id
+);
+INSERT INTO FT_INS_SHIP (PLAYER_ID,CONTROL,SHIP_ID) VALUES(1,1,1);
+SELECT * FROM FT_INS_SHIP;
+#drop table ft_ship;
+
+

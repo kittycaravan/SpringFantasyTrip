@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.peisia.spring.ft.game.mapper.MapperCityAToB">
+	<select id="getMovableCities" resultType="com.peisia.spring.ft.game.dto.DtoCityAToB">
+		SELECT * from ins_sft_game_city_a_to_b where a = #{no};
+	</select>
+</mapper>
